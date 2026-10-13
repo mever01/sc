@@ -1,0 +1,37 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: sc-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+    networks:
+      - sc_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sc-app
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - HEADLESS=true
+      - BROWSER_CHANNEL=
+    depends_on:
+      - ollama
+    networks:
+      - sc_network
+    restart: "no"
+
+networks:
+  sc_network:
+    driver: bridge
+
+volumes:
+  ollama_models:
